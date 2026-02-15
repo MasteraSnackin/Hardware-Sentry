@@ -15,11 +15,25 @@ import {
   detectChanges,
 } from '@/lib/redis';
 import { isMockModeEnabled, getMockScanResult } from '@/lib/mockData';
+import {
+  applyRateLimit,
+  PerformanceMonitor,
+  createMonitoredResponse,
+} from '@/lib/middleware';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // 60 second timeout for Vercel
 
 export async function POST(request: NextRequest) {
+  const monitor = new PerformanceMonitor('POST /api/scan');
+
+  // Apply rate limiting
+  const rateLimitResponse = applyRateLimit(request);
+  if (rateLimitResponse) {
+    monitor.end(false, { reason: 'rate_limited' });
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json();
     const { sku } = body;
@@ -46,10 +60,12 @@ export async function POST(request: NextRequest) {
     const cachedResult = await getCachedScan(sku);
     if (cachedResult && isCacheFresh(cachedResult)) {
       console.log(`[API] Returning fresh cached result for ${sku}`);
-      return NextResponse.json({
-        ...cachedResult,
-        cached: true,
-      });
+      monitor.end(true, { cached: true, sku });
+      return createMonitoredResponse(
+        monitor,
+        { ...cachedResult, cached: true },
+        { cached: true }
+      );
     }
 
     // Acquire lock to prevent concurrent scans
@@ -91,12 +107,22 @@ export async function POST(request: NextRequest) {
       await saveScanResult(scanResult);
 
       console.log(`[API] Scan completed successfully for ${sku}`);
-      return NextResponse.json({
-        ...scanWithChanges,
+      monitor.end(true, {
         cached: false,
+        sku,
+        vendors: scanWithChanges.vendors.length,
       });
+      return createMonitoredResponse(
+        monitor,
+        { ...scanWithChanges, cached: false },
+        { cached: false }
+      );
     } catch (scanError) {
       console.error('[API] Scan error:', scanError);
+
+      // Special handling for circuit breaker errors
+      const isCircuitBreakerError =
+        scanError instanceof Error && scanError.name === 'CircuitBreakerError';
 
       // If scan fails, try to return cached data
       if (cachedResult) {
@@ -106,7 +132,20 @@ export async function POST(request: NextRequest) {
           cached: true,
           stale: true,
           error: scanError instanceof Error ? scanError.message : 'Scan failed',
+          circuitBreakerOpen: isCircuitBreakerError,
         });
+      }
+
+      // No cache available, return error with circuit breaker status
+      if (isCircuitBreakerError) {
+        return NextResponse.json(
+          {
+            error: 'TinyFish API is temporarily unavailable. Please try again in 30 seconds.',
+            circuitBreakerOpen: true,
+            retryAfter: 30,
+          },
+          { status: 503 }
+        );
       }
 
       // No cache available, return error

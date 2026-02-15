@@ -14,23 +14,44 @@ let redisClient: Redis | null = null;
 
 /**
  * Get or initialize Redis client
+ * Returns null if Redis is not properly configured (graceful degradation)
  */
-function getRedisClient(): Redis {
-  if (!redisClient) {
-    const url = process.env.UPSTASH_REDIS_REST_URL;
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+export function getRedisClient(): Redis | null {
+  if (redisClient !== null) {
+    return redisClient;
+  }
 
-    if (!url || !token) {
-      throw new Error('Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN');
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  // Validate Redis configuration
+  if (!url || !token || url.includes('your_upstash') || token.includes('your_upstash')) {
+    if (redisClient === null) {
+      // Log once on first attempt
+      console.warn('[Redis] Redis not configured (using placeholder values). Caching disabled.');
+      console.warn('[Redis] Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in .env.local to enable caching.');
+      redisClient = undefined as any; // Mark as checked
     }
+    return null;
+  }
 
+  // Validate URL format
+  if (!url.startsWith('https://')) {
+    console.error(`[Redis] Invalid Redis URL (must start with https://). Received: "${url}"`);
+    return null;
+  }
+
+  try {
     redisClient = new Redis({
       url,
       token,
     });
+    console.log('[Redis] Client initialized successfully');
+    return redisClient;
+  } catch (error) {
+    console.error('[Redis] Failed to initialize client:', error);
+    return null;
   }
-
-  return redisClient;
 }
 
 /**
@@ -39,6 +60,10 @@ function getRedisClient(): Redis {
 export async function getCachedScan(sku: string): Promise<ScanResult | null> {
   try {
     const redis = getRedisClient();
+    if (!redis) {
+      return null; // Redis not configured, skip caching
+    }
+
     const key = `scan:${sku}:latest`;
     const cached = await redis.get<ScanResult>(key);
 
@@ -61,6 +86,10 @@ export async function getCachedScan(sku: string): Promise<ScanResult | null> {
 export async function saveScanResult(scanResult: ScanResult): Promise<void> {
   try {
     const redis = getRedisClient();
+    if (!redis) {
+      return; // Redis not configured, skip caching
+    }
+
     const { sku } = scanResult;
 
     // Save as latest
@@ -82,7 +111,7 @@ export async function saveScanResult(scanResult: ScanResult): Promise<void> {
     console.log(`[Redis] Saved scan result for ${sku}`);
   } catch (error) {
     console.error('[Redis] Error saving scan result:', error);
-    throw error;
+    // Don't throw - gracefully degrade without caching
   }
 }
 
@@ -92,6 +121,10 @@ export async function saveScanResult(scanResult: ScanResult): Promise<void> {
 export async function getScanHistory(sku: string, limit = 10): Promise<ScanResult[]> {
   try {
     const redis = getRedisClient();
+    if (!redis) {
+      return []; // Redis not configured, no history available
+    }
+
     const historyKey = `scan:${sku}:history`;
 
     // Get most recent scans (sorted by timestamp descending)
@@ -125,6 +158,10 @@ export async function getScanHistory(sku: string, limit = 10): Promise<ScanResul
 export async function acquireScanLock(sku: string): Promise<boolean> {
   try {
     const redis = getRedisClient();
+    if (!redis) {
+      return true; // Redis not configured, always grant lock
+    }
+
     const lockKey = `scan:${sku}:lock`;
 
     // Use SET NX (set if not exists) with expiry
@@ -138,7 +175,7 @@ export async function acquireScanLock(sku: string): Promise<boolean> {
     return acquired;
   } catch (error) {
     console.error('[Redis] Error acquiring lock:', error);
-    return false;
+    return true; // On error, grant lock to allow operation to proceed
   }
 }
 
@@ -148,6 +185,10 @@ export async function acquireScanLock(sku: string): Promise<boolean> {
 export async function releaseScanLock(sku: string): Promise<void> {
   try {
     const redis = getRedisClient();
+    if (!redis) {
+      return; // Redis not configured, no lock to release
+    }
+
     const lockKey = `scan:${sku}:lock`;
     await redis.del(lockKey);
     console.log(`[Redis] Lock released for ${sku}`);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { VendorResultWithChanges } from '@/lib/redis';
 
 interface ScanResultDisplay {
@@ -123,7 +124,12 @@ export default function ResultsTable() {
   };
 
   return (
-    <div className="glass-card overflow-hidden p-0">
+    <motion.div
+      className="glass-card overflow-hidden p-0"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+    >
       {/* Header */}
       <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -139,12 +145,15 @@ export default function ResultsTable() {
                 Stale Data
               </span>
             )}
-            <button
+            <motion.button
               onClick={exportToCSV}
               className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             >
               📥 Export CSV
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>
@@ -173,7 +182,18 @@ export default function ResultsTable() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {results.vendors.map((vendor, index) => (
-              <tr key={index} className="hover:bg-gray-50">
+              <motion.tr
+                key={index}
+                className="hover:bg-gray-50"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 100,
+                  damping: 15,
+                  delay: index * 0.1,
+                }}
+              >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="font-medium text-gray-900">{vendor.name}</div>
                 </td>
@@ -240,7 +260,7 @@ export default function ResultsTable() {
                     Visit →
                   </a>
                 </td>
-              </tr>
+              </motion.tr>
             ))}
           </tbody>
         </table>
@@ -259,7 +279,7 @@ export default function ResultsTable() {
           </ul>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 

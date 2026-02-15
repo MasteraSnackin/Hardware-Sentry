@@ -78,6 +78,7 @@ body {
   grid-auto-rows: minmax(120px, auto);
   gap: 1.5rem;
   width: 100%;
+  perspective: 1000px; /* Enable 3D transforms */
 }
 
 .bento-hero {
@@ -266,4 +267,93 @@ button:active {
 .toast-close:hover {
   background: rgba(0, 0, 0, 0.05);
   color: #1f2937;
+}
+
+/* Dark Mode - 2026 Standard */
+.dark .glass-card {
+  background: rgba(26, 26, 26, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .glass-card:hover {
+  box-shadow: 0 12px 48px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Dark mode toast notifications */
+.dark .toast {
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .toast-message {
+  color: #e5e7eb;
+}
+
+.dark .toast-close {
+  color: #9ca3af;
+}
+
+.dark .toast-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e5e7eb;
+}
+
+/* Enhanced Loading Shimmer - Directional Light Sweep */
+@keyframes shimmer-sweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(229, 231, 235, 0.5) 0%,
+    rgba(229, 231, 235, 0.8) 50%,
+    rgba(229, 231, 235, 0.5) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-sweep 2s ease-in-out infinite;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(55, 65, 81, 0.5) 0%,
+    rgba(75, 85, 99, 0.8) 50%,
+    rgba(55, 65, 81, 0.5) 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Smooth Scroll Behavior - 2026 Standard */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Magnetic hover effect */
+.magnetic-hover {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.magnetic-hover:hover {
+  transform: translateY(-2px);
 }

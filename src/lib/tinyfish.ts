@@ -4,6 +4,8 @@
  */
 
 import { VendorConfig } from './config';
+import { withRetry, isRetryableHttpError } from './retry';
+import { tinyfishCircuitBreaker } from './circuitBreaker';
 
 export interface VendorResult {
   name: string;
@@ -71,52 +73,74 @@ export async function scanHardware(
 
   console.log(`[TinyFish] Starting scan for ${sku} across ${vendorConfigs.length} vendors`);
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT_MS);
+  // Wrap in circuit breaker to prevent cascading failures
+  return tinyfishCircuitBreaker.execute(async () => {
+    // Wrap in retry logic for transient failures
+    return withRetry(
+      async () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), SCAN_TIMEOUT_MS);
 
-  try {
-    const response = await fetch(TINYFISH_API_URL, {
-      method: 'POST',
-      headers: {
-        'X-API-Key': apiKey,
-        'Content-Type': 'application/json',
+        try {
+          const response = await fetch(TINYFISH_API_URL, {
+            method: 'POST',
+            headers: {
+              'X-API-Key': apiKey,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              url: vendorConfigs.map((v) => v.url),
+              goal: EXTRACTION_GOAL,
+            }),
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            const error = new Error(
+              `TinyFish API error: ${response.status} ${response.statusText}`
+            );
+
+            // Make retryable HTTP errors have the right name
+            if (isRetryableHttpError(response.status)) {
+              error.name = 'ETIMEDOUT'; // Retryable
+            }
+
+            throw error;
+          }
+
+          if (!response.body) {
+            throw new Error('TinyFish response has no body');
+          }
+
+          const vendors = await parseSSEStream(response.body);
+
+          return {
+            sku,
+            scannedAt: new Date().toISOString(),
+            vendors,
+          };
+        } catch (error) {
+          clearTimeout(timeoutId);
+
+          if (error instanceof Error) {
+            if (error.name === 'AbortError') {
+              throw new Error(`TinyFish scan timeout after ${SCAN_TIMEOUT_MS / 1000}s`);
+            }
+            throw error;
+          }
+
+          throw new Error('Unknown error during TinyFish scan');
+        }
       },
-      body: JSON.stringify({
-        url: vendorConfigs.map((v) => v.url),
-        goal: EXTRACTION_GOAL,
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`TinyFish API error: ${response.status} ${response.statusText}`);
-    }
-
-    if (!response.body) {
-      throw new Error('TinyFish response has no body');
-    }
-
-    const vendors = await parseSSEStream(response.body);
-
-    return {
-      sku,
-      scannedAt: new Date().toISOString(),
-      vendors,
-    };
-  } catch (error) {
-    clearTimeout(timeoutId);
-
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        throw new Error(`TinyFish scan timeout after ${SCAN_TIMEOUT_MS / 1000}s`);
+      {
+        maxAttempts: 3,
+        baseDelay: 2000, // 2 seconds
+        maxDelay: 8000, // 8 seconds
       }
-      throw error;
-    }
-
-    throw new Error('Unknown error during TinyFish scan');
-  }
+    );
+  });
 }
 
 /**

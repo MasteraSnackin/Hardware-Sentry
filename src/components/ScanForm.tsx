@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { getAllSKUs } from '@/lib/config';
 import { showToast } from './Toast';
+import { RippleButton } from './RippleButton';
 
 export default function ScanForm() {
   const [selectedSKU, setSelectedSKU] = useState('pi5-8gb');
@@ -111,7 +112,7 @@ export default function ScanForm() {
 
       {/* Scan Button */}
       <div>
-        <button
+        <RippleButton
           onClick={handleScan}
           disabled={isScanning}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
@@ -127,7 +128,7 @@ export default function ScanForm() {
               <span>Start Scan</span>
             </>
           )}
-        </button>
+        </RippleButton>
       </div>
 
       {/* Error Display */}

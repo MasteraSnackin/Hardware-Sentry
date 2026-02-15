@@ -1,14 +1,31 @@
 /**
  * GET /api/health
- * Health check endpoint to verify API and dependencies
+ * Layer 2 (Orchestration): Health check and circuit breaker metrics
  */
 
 import { NextResponse } from 'next/server';
+import { tinyfishCircuitBreaker } from '@/lib/circuitBreaker';
+import { getRedisClient } from '@/lib/redis';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const circuitBreakerMetrics = tinyfishCircuitBreaker.getMetrics();
+
+  // Check Redis connection
+  let redisHealthy = false;
+  let redisError = null;
+  try {
+    const redis = getRedisClient();
+    if (redis) {
+      await redis.ping();
+      redisHealthy = true;
+    }
+  } catch (error) {
+    redisError = error instanceof Error ? error.message : 'Unknown error';
+  }
+
   const health = {
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -17,30 +34,35 @@ export async function GET() {
     checks: {
       tinyfish: {
         configured: !!process.env.TINYFISH_API_KEY,
-        status: process.env.TINYFISH_API_KEY ? 'ready' : 'not_configured',
+        status:
+          circuitBreakerMetrics.state === 'CLOSED'
+            ? 'healthy'
+            : circuitBreakerMetrics.state === 'HALF_OPEN'
+              ? 'recovering'
+              : 'unavailable',
+        circuitBreaker: circuitBreakerMetrics,
       },
       redis: {
         configured:
           !!process.env.UPSTASH_REDIS_REST_URL &&
           !!process.env.UPSTASH_REDIS_REST_TOKEN,
-        status:
-          process.env.UPSTASH_REDIS_REST_URL &&
-          process.env.UPSTASH_REDIS_REST_TOKEN
-            ? 'ready'
-            : 'not_configured',
+        status: redisHealthy ? 'healthy' : 'degraded',
+        error: redisError,
       },
     },
   };
 
   // Overall health status
-  const allConfigured =
-    health.checks.tinyfish.configured && health.checks.redis.configured;
+  const isHealthy =
+    health.checks.tinyfish.configured &&
+    redisHealthy &&
+    circuitBreakerMetrics.state !== 'OPEN';
 
-  if (!allConfigured) {
+  if (!isHealthy) {
     health.status = 'degraded';
   }
 
-  const statusCode = allConfigured ? 200 : 503;
+  const statusCode = isHealthy ? 200 : 503;
 
   return NextResponse.json(health, { status: statusCode });
 }

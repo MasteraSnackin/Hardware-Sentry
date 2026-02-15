@@ -4,7 +4,9 @@
       "Bash(dir:*)",
       "Bash(npm run type-check:*)",
       "Bash(timeout 8 npm run dev:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
     ]
   }
 }
