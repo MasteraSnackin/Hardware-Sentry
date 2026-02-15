@@ -541,18 +541,10 @@ See the [LICENSE](LICENSE) file for full details.
 
 ---
 
-## Contact / Support
-
-**Maintainer**: [Your Name]
-**Email**: [your.email@example.com]
-**GitHub**: [github.com/yourusername](https://github.com/yourusername)
-**Project Repository**: [github.com/yourusername/hardware-sentry](https://github.com/yourusername/hardware-sentry)
-
 ### Links
 
 - **TinyFish API**: [tinyfish.ai](https://tinyfish.ai)
 - **Upstash Redis**: [upstash.com](https://upstash.com)
-- **Web Agents Hackathon**: [Submission Form](https://forms.gle/VdDDP1fADVLiWE5MA)
 - **TinyFish Cookbook**: [github.com/tinyfish-io/tinyfish-cookbook](https://github.com/tinyfish-io/tinyfish-cookbook)
 
 ---
