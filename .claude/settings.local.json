@@ -6,7 +6,13 @@
       "Bash(timeout 8 npm run dev:*)",
       "Bash(npm run build:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(vercel:*)",
+      "Bash(VERCEL_ORG_ID=team_04Gye9iCf6HxjdYr4lHM5WbK vercel deploy:*)",
+      "Bash(curl:*)",
+      "Bash(git pull:*)"
     ]
   }
 }
