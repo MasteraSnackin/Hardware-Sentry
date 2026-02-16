@@ -20,6 +20,7 @@ import {
   PerformanceMonitor,
   createMonitoredResponse,
 } from '@/lib/middleware';
+import { recordScanEvent } from '@/lib/analytics';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // 60 second timeout for Vercel
@@ -61,6 +62,17 @@ export async function POST(request: NextRequest) {
     if (cachedResult && isCacheFresh(cachedResult)) {
       console.log(`[API] Returning fresh cached result for ${sku}`);
       monitor.end(true, { cached: true, sku });
+
+      // Record analytics event (async, don't await)
+      recordScanEvent({
+        sku,
+        success: true,
+        cached: true,
+        responseTime: monitor.getDuration(),
+        timestamp: Date.now(),
+        vendorCount: cachedResult.vendors?.length || 0,
+      }).catch((err) => console.error('[Analytics] Record error:', err));
+
       return createMonitoredResponse(
         monitor,
         { ...cachedResult, cached: true },
@@ -112,6 +124,17 @@ export async function POST(request: NextRequest) {
         sku,
         vendors: scanWithChanges.vendors.length,
       });
+
+      // Record analytics event for successful fresh scan (async, don't await)
+      recordScanEvent({
+        sku,
+        success: true,
+        cached: false,
+        responseTime: monitor.getDuration(),
+        timestamp: Date.now(),
+        vendorCount: scanWithChanges.vendors.length,
+      }).catch((err) => console.error('[Analytics] Record error:', err));
+
       return createMonitoredResponse(
         monitor,
         { ...scanWithChanges, cached: false },
@@ -119,6 +142,16 @@ export async function POST(request: NextRequest) {
       );
     } catch (scanError) {
       console.error('[API] Scan error:', scanError);
+
+      // Record analytics event for failed scan (async, don't await)
+      recordScanEvent({
+        sku,
+        success: false,
+        cached: false,
+        responseTime: monitor.getDuration(),
+        timestamp: Date.now(),
+        errorMessage: scanError instanceof Error ? scanError.message : 'Unknown error',
+      }).catch((err) => console.error('[Analytics] Record error:', err));
 
       // Special handling for circuit breaker errors
       const isCircuitBreakerError =

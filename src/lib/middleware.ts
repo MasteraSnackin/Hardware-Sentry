@@ -147,10 +147,17 @@ export class PerformanceMonitor {
   }
 
   /**
+   * Get current duration in milliseconds
+   */
+  getDuration(): number {
+    return Date.now() - this.startTime;
+  }
+
+  /**
    * Log performance metrics
    */
   end(success: boolean = true, metadata?: Record<string, unknown>): void {
-    const duration = Date.now() - this.startTime;
+    const duration = this.getDuration();
 
     console.log(
       `[Performance] ${this.operation} ${success ? 'SUCCESS' : 'FAILED'} in ${duration}ms`,

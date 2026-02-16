@@ -19,7 +19,7 @@ export function PriceBar({
   price,
   maxPrice,
   minPrice,
-  currency,
+  currency: _currency,
   isBestDeal = false,
 }: PriceBarProps) {
   const range = maxPrice - minPrice;

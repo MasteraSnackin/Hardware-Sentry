@@ -2,7 +2,7 @@
 
 ## Current State (Production-Ready ✅)
 
-### ✅ API Endpoints Live (4)
+### ✅ API Endpoints Live (5)
 
 **POST /api/scan** - Main hardware scanning endpoint
 - ✅ Cache-first strategy (1-hour TTL)
@@ -15,8 +15,9 @@
 - ✅ Mock mode support (development)
 - ✅ 90-second timeout
 - ✅ Change detection (price/stock)
+- ✅ **NEW:** Analytics recording (all scan outcomes)
 
-**POST /api/scan/batch** - Batch scanning (NEW)
+**POST /api/scan/batch** - Batch scanning
 - ✅ Scan up to 5 SKUs in parallel
 - ✅ Promise.allSettled for reliability
 - ✅ Aggregated results with metadata
@@ -34,17 +35,24 @@
 - ✅ Returns 200 (healthy) or 503 (degraded)
 - ✅ Detailed status for each service
 
+**GET /api/analytics/stats** - Analytics dashboard (NEW)
+- ✅ Aggregate scan metrics (total, success rate, cache hit rate)
+- ✅ SKU popularity ranking
+- ✅ Recent activity timeline (last 50 events)
+- ✅ Average response time tracking
+- ✅ 60-second cache headers
+
 ---
 
-### ✅ Core Libraries (8)
+### ✅ Core Libraries (9)
 
 **lib/tinyfish.ts** - TinyFish API client
 - ✅ SSE stream parsing
 - ✅ 90-second timeout with AbortController
 - ✅ Type-safe result validation
 - ✅ Extraction goal prompt engineering
-- ✅ **NEW:** Retry logic integration (3 attempts)
-- ✅ **NEW:** Circuit breaker wrapper
+- ✅ Retry logic integration (3 attempts)
+- ✅ Circuit breaker wrapper
 
 **lib/redis.ts** - Redis operations
 - ✅ Caching (scan:{sku}:latest)
@@ -52,7 +60,7 @@
 - ✅ Distributed locking (scan:{sku}:lock)
 - ✅ Change detection algorithm
 - ✅ Graceful degradation when Redis unavailable
-- ✅ **NEW:** Exported `getRedisClient()` for health checks
+- ✅ Exported `getRedisClient()` for health checks
 
 **lib/config.ts** - SKU & vendor configuration
 - ✅ Pi 5 8GB (4 vendors)
@@ -64,25 +72,33 @@
 - ✅ Realistic response simulation
 - ✅ 1-second delay for UX testing
 
-**lib/retry.ts** - NEW: Exponential backoff
+**lib/retry.ts** - Exponential backoff
 - ✅ Configurable retry attempts (default: 3)
 - ✅ Exponential backoff (2s → 4s → 8s)
 - ✅ Retryable error detection (network, timeouts, 5xx)
 - ✅ Max delay cap (8 seconds)
 
-**lib/middleware.ts** - NEW: Rate limiting & monitoring
+**lib/middleware.ts** - Rate limiting & monitoring
 - ✅ RateLimiter class (sliding window, 5 req/60s)
 - ✅ PerformanceMonitor (request timing)
 - ✅ Response compression utilities (gzip/brotli)
 - ✅ X-Response-Time headers
 - ✅ Automatic cleanup (60s interval)
 
-**lib/circuitBreaker.ts** - NEW: Circuit breaker pattern
+**lib/circuitBreaker.ts** - Circuit breaker pattern
 - ✅ Three states: CLOSED, OPEN, HALF_OPEN
 - ✅ Configurable thresholds (failure: 3, timeout: 30s, success: 2)
 - ✅ Automatic recovery after timeout
 - ✅ Metrics tracking (state, failures, calls)
 - ✅ Global instance for TinyFish API
+
+**lib/analytics.ts** - NEW: Analytics tracking
+- ✅ ScanEvent interface (success, cached, responseTime, errors)
+- ✅ AnalyticsStats aggregation (rates, averages, popularity)
+- ✅ Redis time-series storage (sorted sets, lists, counters)
+- ✅ Fire-and-forget async recording (zero latency impact)
+- ✅ Graceful degradation (never breaks main flow)
+- ✅ Parallel data fetching for fast stats retrieval
 
 ---
 
@@ -150,21 +166,43 @@
 
 ---
 
-## 🚀 Phase 3: Future Enhancements (Optional)
+## ✅ Phase 3: Analytics & Observability (PARTIAL - 1/4 Complete)
+
+### 🎯 Analytics Dashboard
+**Problem:** No visibility into usage patterns and system health
+**Solution:** Track scan events, cache performance, and SKU popularity
+**Impact:** Data-driven insights for optimization decisions
+**Status:** ✅ **COMPLETE** - Analytics recording integrated into all scan paths
+
+**Implementation:**
+- ✅ `lib/analytics.ts` (260 lines) - Layer 3 execution with deterministic functions
+- ✅ `api/analytics/stats/route.ts` (45 lines) - Layer 2 API endpoint
+- ✅ Integrated into `api/scan/route.ts` - Records all scan outcomes
+- ✅ Redis time-series data structures (sorted sets, lists, counters)
+- ✅ Graceful degradation (analytics never breaks main flow)
+- ✅ Fire-and-forget async recording (zero latency impact)
+
+**Metrics Tracked:**
+- Total scans, success/failure rates, success percentage
+- Cache hit rate (hits vs misses)
+- Average response time (last 100 requests)
+- SKU popularity ranking (sorted by scan count)
+- Recent activity (last 50 scan events with details)
+
+**Endpoint:** GET /api/analytics/stats
+- Returns aggregate metrics for all-time period
+- 60-second cache headers for performance
+- Parallel Redis fetches for speed
+
+---
+
+## 🚀 Phase 3: Future Enhancements (Remaining)
 
 ### Webhook Notifications
 - POST /api/webhooks/register - Subscribe to price change alerts
 - Email/Slack/Discord integration
 - Stock availability alerts
 - Price drop notifications
-
-### Analytics Dashboard
-- GET /api/analytics/stats - Aggregate metrics
-- Scan success/failure rates over time
-- Average response times by vendor
-- Cache hit ratios
-- Most scanned products
-- Circuit breaker trip frequency
 
 ### Redis-Based Rate Limiting
 - Replace in-memory Map with Upstash Redis
@@ -209,34 +247,37 @@ export const dynamic = 'force-dynamic';  // For searchParams
 
 ## 📈 Implementation Summary
 
-### Files Created (Phase 1 & 2)
+### Files Created (Phase 1, 2 & 3)
 1. `src/lib/retry.ts` (100 lines)
 2. `src/lib/middleware.ts` (184 lines)
 3. `src/lib/circuitBreaker.ts` (152 lines)
 4. `src/app/api/scan/batch/route.ts` (220 lines)
+5. `src/lib/analytics.ts` (260 lines) - **Phase 3**
+6. `src/app/api/analytics/stats/route.ts` (45 lines) - **Phase 3**
 
-### Files Modified (Phase 1 & 2)
+### Files Modified (Phase 1, 2 & 3)
 1. `src/lib/tinyfish.ts` - Retry + circuit breaker integration
 2. `src/lib/redis.ts` - Exported `getRedisClient()`
-3. `src/app/api/scan/route.ts` - Rate limiting, monitoring, circuit breaker
+3. `src/app/api/scan/route.ts` - Rate limiting, monitoring, circuit breaker, **analytics recording**
 4. `src/app/api/health/route.ts` - Metrics + Redis ping
 
 ### Total Impact
-- **Lines Added:** ~660 lines of backend logic
+- **Lines Added:** ~960 lines of backend logic (+300 from analytics)
 - **Bundle Size:** +0 kB (backend-only changes)
 - **Error Reduction:** 40% fewer transient failures
 - **Cost Reduction:** 30% API call savings (caching + rate limiting)
 - **Performance:** 70% faster batch scans
+- **Observability:** Full analytics tracking with zero latency impact
 
 ---
 
-## 🎯 Next Steps (Phase 3 - Optional)
+## 🎯 Next Steps (Phase 3 - Optional Remaining Features)
 
 1. **Webhook Notifications** - Stock alerts via email/Slack
-2. **Analytics Dashboard** - Visualize scan metrics
-3. **Redis-Based Rate Limiting** - Distributed across instances
-4. **Advanced Caching** - Stale-while-revalidate pattern
+2. **Redis-Based Rate Limiting** - Distributed across instances
+3. **Advanced Caching** - Stale-while-revalidate pattern
+4. **Analytics Dashboard UI** - Frontend visualization of metrics
 
-**Status:** Phase 1 & 2 complete, Phase 3 optional for future iterations
+**Status:** Phase 1 & 2 complete ✅, Phase 3 Analytics Backend complete ✅
 
-**Last Updated:** 2026-02-16 (Builder Mode Phase 1 & 2 Complete ✅)
+**Last Updated:** 2026-02-16 (Builder Mode Phase 3 Analytics Complete ✅)

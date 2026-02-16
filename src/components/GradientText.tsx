@@ -30,25 +30,23 @@ export default function GradientText({
                         variant === 'success' ? 'text-gradient-success' :
                         'text-gradient';
 
-  const Component = animate ? motion.span : 'span';
+  if (animate) {
+    return (
+      <motion.span
+        className={`${gradientClass} ${className}`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          type: 'spring' as const,
+          stiffness: 100,
+          damping: 15,
+          delay: 0.1,
+        }}
+      >
+        {children}
+      </motion.span>
+    );
+  }
 
-  const animationProps = animate ? {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: {
-      type: 'spring',
-      stiffness: 100,
-      damping: 15,
-      delay: 0.1,
-    },
-  } : {};
-
-  return (
-    <Component
-      className={`${gradientClass} ${className}`}
-      {...animationProps}
-    >
-      {children}
-    </Component>
-  );
+  return <span className={`${gradientClass} ${className}`}>{children}</span>;
 }
