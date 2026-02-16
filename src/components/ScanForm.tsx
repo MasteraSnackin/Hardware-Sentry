@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { getAllSKUs } from '@/lib/config';
 import { showToast } from './Toast';
 import { RippleButton } from './RippleButton';
+import { triggerConfetti } from './Confetti';
 
 export default function ScanForm() {
   const [selectedSKU, setSelectedSKU] = useState('pi5-8gb');
@@ -60,6 +61,9 @@ export default function ScanForm() {
       window.dispatchEvent(
         new CustomEvent('scanComplete', { detail: result })
       );
+
+      // Phase 3: Trigger confetti celebration! 🎉
+      triggerConfetti();
 
       // Show success toast
       showToast({

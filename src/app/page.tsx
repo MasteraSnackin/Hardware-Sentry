@@ -31,28 +31,28 @@ export default function HomePage() {
         <ScanForm />
       </BentoCard>
 
-      {/* Info Cards - Sidebar */}
-      <BentoCard delay={0.15} className="bento-info-1 bg-gradient-to-br from-blue-50 to-blue-100/50">
-        <div className="text-3xl mb-2">⚡</div>
-        <h4 className="font-semibold text-blue-900 mb-1">Fast Scans</h4>
-        <p className="text-sm text-blue-700">
-          Results in under 45 seconds across multiple vendors
+      {/* Info Cards - Sidebar with 2026 Colored Shadows */}
+      <BentoCard delay={0.15} className="bento-info-1 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 hover:shadow-blue-500/20 dark:hover:shadow-blue-400/20">
+        <div className="text-4xl mb-3 animate-bounce-subtle">⚡</div>
+        <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2 text-base">Fast Scans</h4>
+        <p className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed">
+          Results in under <span className="font-semibold text-gradient-info">45 seconds</span> across multiple vendors
         </p>
       </BentoCard>
 
-      <BentoCard delay={0.2} className="bento-info-2 bg-gradient-to-br from-green-50 to-green-100/50">
-        <div className="text-3xl mb-2">📊</div>
-        <h4 className="font-semibold text-green-900 mb-1">Price Tracking</h4>
-        <p className="text-sm text-green-700">
-          Compare prices and detect changes automatically
+      <BentoCard delay={0.2} className="bento-info-2 bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 hover:shadow-green-500/20 dark:hover:shadow-green-400/20">
+        <div className="text-4xl mb-3 animate-bounce-subtle" style={{animationDelay: '0.2s'}}>📊</div>
+        <h4 className="font-bold text-green-900 dark:text-green-300 mb-2 text-base">Price Tracking</h4>
+        <p className="text-sm text-green-700 dark:text-green-400 leading-relaxed">
+          Compare prices and detect <span className="font-semibold text-gradient-success">changes automatically</span>
         </p>
       </BentoCard>
 
-      <BentoCard delay={0.25} className="bento-info-3 bg-gradient-to-br from-purple-50 to-purple-100/50">
-        <div className="text-3xl mb-2">🤖</div>
-        <h4 className="font-semibold text-purple-900 mb-1">AI-Powered</h4>
-        <p className="text-sm text-purple-700">
-          Uses TinyFish Web Agents for reliable extraction
+      <BentoCard delay={0.25} className="bento-info-3 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 hover:shadow-purple-500/20 dark:hover:shadow-purple-400/20">
+        <div className="text-4xl mb-3 animate-bounce-subtle" style={{animationDelay: '0.4s'}}>🤖</div>
+        <h4 className="font-bold text-purple-900 dark:text-purple-300 mb-2 text-base">AI-Powered</h4>
+        <p className="text-sm text-purple-700 dark:text-purple-400 leading-relaxed">
+          Uses <span className="font-semibold text-gradient">TinyFish Web Agents</span> for reliable extraction
         </p>
       </BentoCard>
 

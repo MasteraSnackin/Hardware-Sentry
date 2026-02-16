@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ThemeProvider } from './ThemeProvider';
 import { ThemeToggle } from './ThemeToggle';
 import GradientText from './GradientText';
+import { Confetti } from './Confetti';
 
 interface ClientLayoutProps {
   children: ReactNode;
@@ -67,22 +68,33 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         {children}
       </main>
 
-      <footer className="mt-16 glass-card">
+      {/* Phase 5: Enhanced Footer with Gradient Border */}
+      <footer className="mt-16 glass-card relative overflow-hidden">
+        {/* Gradient border animation */}
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-gradient-x"></div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-          Built with{' '}
-          <a
-            href="https://tinyfish.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-          >
-            TinyFish Web Agents
-          </a>{' '}
-          | Web Agents Hackathon Feb 2026
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="text-gradient font-semibold">Built with</span>
+            <a
+              href="https://tinyfish.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-semibold"
+            >
+              TinyFish Web Agents
+            </a>
+          </div>
+          <div className="text-xs text-gray-400 dark:text-gray-500">
+            Web Agents Hackathon Feb 2026 🐠
+          </div>
         </div>
       </footer>
 
       <div id="toast-container" className="fixed top-4 right-4 z-[100] space-y-2"></div>
+
+      {/* Phase 3: Confetti Celebration */}
+      <Confetti />
     </ThemeProvider>
   );
 }

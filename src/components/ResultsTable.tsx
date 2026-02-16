@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { VendorResultWithChanges } from '@/lib/redis';
 import { StatusBadge } from './StatusBadge';
 import { SkeletonLoader } from './SkeletonLoader';
+import { PriceBar } from './PriceBar';
 
 interface ScanResultDisplay {
   sku: string;
@@ -95,6 +96,13 @@ export default function ResultsTable() {
 
   const scanDate = new Date(results.scannedAt);
   const timeAgo = getTimeAgo(scanDate);
+
+  // Phase 4: Calculate price range for visualization
+  const prices = results.vendors
+    .filter((v) => v.price !== null)
+    .map((v) => v.price as number);
+  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
 
   const exportToCSV = () => {
     const headers = ['Vendor', 'Price', 'Currency', 'In Stock', 'Stock Level', 'Notes', 'URL'];
@@ -209,18 +217,18 @@ export default function ResultsTable() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="font-medium text-gray-900">{vendor.name}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4">
                   {vendor.price !== null ? (
-                    <div>
-                      <div className="text-gray-900 font-semibold">
+                    <div className="min-w-[180px]">
+                      <div className="text-gray-900 dark:text-gray-100 font-semibold">
                         {vendor.currency} {vendor.price.toFixed(2)}
                       </div>
                       {vendor.changes?.priceChange?.isSignificant && (
                         <div
                           className={`text-xs mt-1 ${
                             vendor.changes.priceChange.delta > 0
-                              ? 'text-red-600'
-                              : 'text-green-600'
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-green-600 dark:text-green-400'
                           }`}
                         >
                           {vendor.changes.priceChange.delta > 0 ? '↑' : '↓'}{' '}
@@ -230,6 +238,14 @@ export default function ResultsTable() {
                           {vendor.changes.priceChange.percentChange.toFixed(1)}%)
                         </div>
                       )}
+                      {/* Phase 4: Price comparison bar */}
+                      <PriceBar
+                        price={vendor.price}
+                        minPrice={minPrice}
+                        maxPrice={maxPrice}
+                        currency={vendor.currency}
+                        isBestDeal={vendor.price === minPrice}
+                      />
                     </div>
                   ) : (
                     <div className="text-gray-400 text-sm">N/A</div>
