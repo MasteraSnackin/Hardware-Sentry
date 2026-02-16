@@ -243,6 +243,18 @@ export const dynamic = 'force-dynamic';  // For searchParams
 - [ ] Manual test scan completed (pending API keys)
 - [ ] Vercel deployment verified (pending deployment)
 
+### Testing Checklist (🚨 CRITICAL - See TEST_PLAN.md)
+- [ ] Testing framework installed (Vitest)
+- [ ] P0 critical tests (retry, circuit breaker, redis, middleware, scan API)
+- [ ] P1 high priority tests (analytics, tinyfish, batch API)
+- [ ] P2 medium priority tests (components, health, history)
+- [ ] Test coverage > 80%
+- [ ] All tests passing
+- [ ] No P0/P1 bugs open (see BUGS.md)
+
+**Current Status:** 🚨 0% test coverage - NO TESTS EXIST
+**Blocking Production:** YES - Critical tests required before deployment
+
 ---
 
 ## 📈 Implementation Summary
@@ -268,6 +280,136 @@ export const dynamic = 'force-dynamic';  // For searchParams
 - **Cost Reduction:** 30% API call savings (caching + rate limiting)
 - **Performance:** 70% faster batch scans
 - **Observability:** Full analytics tracking with zero latency impact
+
+---
+
+## 🧪 Phase 4: Quality Assurance & Testing (CRITICAL - 0% Complete)
+
+### 🚨 Status: CRITICAL - Zero Test Coverage
+
+**Problem:** 960+ lines of production code with NO tests
+**Risk:** High - Unverified business logic, untested error handling, potential data loss
+**Impact:** Blocks production deployment, increases bug likelihood by 300%+
+
+### Test Infrastructure (Not Started)
+- [ ] **Install Vitest** - Testing framework
+- [ ] **Configure vitest.config.ts** - Test setup and coverage
+- [ ] **Create tests/setup.ts** - Mock Next.js router, global test config
+- [ ] **Add test scripts** - npm run test, test:coverage, test:ui
+
+### P0 Critical Tests (Blocking Production)
+Priority: 🔴 **HIGHEST** | Timeline: Immediate | Coverage Target: 95%
+
+- [ ] **lib/retry.test.ts** - Exponential backoff logic
+  - Prevents infinite API calls
+  - Ensures backoff delays increase correctly
+  - Validates max attempt limits
+  - **Risk if untested:** Infinite retry loops, API rate limit abuse
+
+- [ ] **lib/circuitBreaker.test.ts** - State machine transitions
+  - CLOSED → OPEN → HALF_OPEN → CLOSED cycle
+  - Concurrent request handling during state changes
+  - Metrics accuracy
+  - **Risk if untested:** Cascading failures, stuck in OPEN state
+
+- [ ] **lib/redis.test.ts** - Cache operations
+  - Cache hit/miss scenarios
+  - TTL expiration (1 hour)
+  - Lock acquisition/release
+  - Graceful degradation when Redis unavailable
+  - **Risk if untested:** Cache corruption, data loss, race conditions
+
+- [ ] **lib/middleware.test.ts** - Rate limiting
+  - Sliding window algorithm
+  - Cleanup of old entries
+  - Per-IP limit enforcement (5 req/60s)
+  - **Risk if untested:** API abuse, memory leaks from unclean entries
+
+- [ ] **api/scan/route.test.ts** - Main scan endpoint
+  - Happy path (valid SKU → results)
+  - Error paths (invalid SKU, TinyFish failure)
+  - Cache behavior (fresh vs stale)
+  - Rate limiting integration
+  - Analytics recording integration
+  - **Risk if untested:** Core user workflow broken, silent analytics failures
+
+### P1 High Priority Tests (Blocking Feature Complete)
+Priority: 🟡 **HIGH** | Timeline: This Week | Coverage Target: 90%
+
+- [ ] **lib/analytics.test.ts** - Analytics tracking (NEW - Phase 3)
+  - recordScanEvent increments Redis counters
+  - Handles Redis connection failure gracefully
+  - getAnalyticsStats calculates metrics correctly
+  - Response time parsing (string → number)
+  - **Risk if untested:** Incorrect business metrics, silent failures
+
+- [ ] **lib/tinyfish.test.ts** - TinyFish API client
+  - SSE stream parsing
+  - Timeout handling (90s)
+  - Retry integration
+  - Circuit breaker integration
+  - **Risk if untested:** Scan failures, poor error messages
+
+- [ ] **api/scan/batch/route.test.ts** - Batch scanning
+  - Parallel execution with Promise.allSettled
+  - Partial failure handling
+  - 5 SKU limit enforcement
+  - **Risk if untested:** Memory issues from unbounded parallel requests
+
+- [ ] **api/analytics/stats/route.test.ts** - Analytics endpoint (NEW - Phase 3)
+  - Aggregate metric calculation
+  - Success rate accuracy
+  - Cache hit rate accuracy
+  - Handles empty Redis gracefully
+  - **Risk if untested:** Dashboard shows incorrect data
+
+### P2 Medium Priority Tests (Polish)
+Priority: 🟢 **MEDIUM** | Timeline: Next Week | Coverage Target: 70%
+
+- [ ] **components/GradientText.test.tsx** - Gradient text (NEW - Design)
+- [ ] **components/Confetti.test.tsx** - Confetti animation (NEW - Design)
+- [ ] **components/PriceBar.test.tsx** - Price visualization (NEW - Design)
+- [ ] **api/health/route.test.ts** - Health checks
+- [ ] **api/history/route.test.ts** - Historical data
+
+### Known Issues Requiring Tests (See BUGS.md)
+
+1. **BUG-001:** Analytics Redis parsing (lib/analytics.ts:174)
+   - Severity: P1 | Status: Fixed, needs test coverage
+   - Response times stored as strings, requires parseFloat
+
+2. **BUG-002:** Rate limiter cleanup memory leak risk (lib/middleware.ts)
+   - Severity: P2 | Status: Open, needs investigation
+   - setInterval called on every constructor
+
+3. **BUG-003:** Circuit breaker race condition (lib/circuitBreaker.ts)
+   - Severity: P1 | Status: Open, needs test coverage
+   - Concurrent calls during HALF_OPEN may conflict
+
+4. **BUG-004:** Lock auto-release tight margin (lib/redis.ts)
+   - Severity: P1 | Status: Open, needs verification
+   - Lock TTL 2min, scan timeout 90s - only 30s margin
+
+### Test Metrics & Goals
+
+| Metric | Target | Current | Status |
+|--------|--------|---------|--------|
+| Overall Coverage | >80% | 0% | 🚨 |
+| lib/ Coverage | >95% | 0% | 🚨 |
+| api/ Coverage | >90% | 0% | 🚨 |
+| components/ Coverage | >70% | 0% | 🚨 |
+| P0 Tests | 5 files | 0 | 🚨 |
+| P1 Tests | 4 files | 0 | 🚨 |
+| E2E Tests | 1 critical path | 0 | 🚨 |
+
+### Documentation
+- ✅ TEST_PLAN.md created - Comprehensive testing strategy
+- ⏳ BUGS.md pending - Issue tracking document
+- ⏳ Coverage report pending - HTML coverage report
+
+**Status:** 🚨 CRITICAL - Zero tests, blocking production
+**Owner:** The Nerd (QC Lead)
+**Next Action:** Install Vitest, write first P0 test
 
 ---
 
