@@ -2,9 +2,10 @@
 
 **Real-time multi-vendor availability and pricing tracker for hard-to-find developer boards**
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/yourusername/hardware-sentry)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/MasteraSnackin/Hardware-Sentry)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black)](https://nextjs.org/)
+[![TinyFish](https://img.shields.io/badge/TinyFish-Web_Agents-00D9FF)](https://tinyfish.ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -30,6 +31,7 @@ Hardware Sentry is a real-time availability and pricing tracker that scans multi
 - [Screenshots / Demo](#screenshots--demo)
 - [API Reference](#api-reference)
 - [Tests](#tests)
+- [Known Issues](#known-issues)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
@@ -39,19 +41,31 @@ Hardware Sentry is a real-time availability and pricing tracker that scans multi
 
 ## Features
 
-- ✅ **Multi-Vendor Scanning**: Simultaneously scan 4+ major retailers (Amazon, The Pi Hut, Pimoroni, etc.)
+### 🎯 Core Capabilities
+- ✅ **Multi-Vendor Scanning**: Simultaneously scan 10+ major retailers (Amazon, The Pi Hut, Pimoroni, CPC Farnell, RS Components, etc.)
 - ✅ **Real-Time Price Extraction**: Extract live pricing and stock status in <45 seconds
-- ✅ **Change Detection**: Automatically highlight price changes and stock updates vs. previous scan
+- ✅ **Change Detection**: Automatically highlight price changes (>£1 or >2%) and stock updates vs. previous scan
 - ✅ **Historical Tracking**: Store last 10 scans per product with Redis sorted sets
-- ✅ **Intelligent Caching**: 1-hour TTL cache prevents redundant API calls
-- ✅ **Distributed Locking**: Prevent concurrent scans with Redis-based locks
-- ✅ **Rate Limiting**: 5 requests per minute per IP to prevent abuse
-- ✅ **Circuit Breaker**: Automatic fallback when TinyFish API is unavailable
-- ✅ **Retry Logic**: Exponential backoff for transient failures (3 attempts, 2-8s delays)
+- ✅ **Intelligent Caching**: 1-hour TTL cache prevents redundant API calls and improves response times
+- ✅ **Distributed Locking**: Prevent concurrent scans with Redis-based locks (2-minute TTL)
 - ✅ **CSV Export**: Download scan results for offline analysis
-- ✅ **Dark Mode**: System-aware theme with localStorage persistence
-- ✅ **Mobile Responsive**: Optimized for all screen sizes
+
+### 🚀 Advanced Features
+- ✅ **Analytics Dashboard**: Track scan success rates, cache hit ratios, SKU popularity, and average response times
+- ✅ **Circuit Breaker Pattern**: 3-state protection (CLOSED → OPEN → HALF_OPEN) for automatic fault tolerance
+- ✅ **Exponential Backoff Retry**: 3 attempts with increasing delays (2s → 4s → 8s) for transient failures
+- ✅ **Rate Limiting**: Distributed rate limiter (5 req/60s per IP) prevents abuse using sliding window algorithm
+- ✅ **Performance Monitoring**: Fire-and-forget analytics with zero latency impact on scan operations
+- ✅ **Progress Indicators**: Real-time progress bars during long-running scans
 - ✅ **Mock Mode**: Development testing without API keys
+
+### 🎨 2026 Visual Excellence
+- ✅ **Glassmorphism UI**: Frosted glass effects with backdrop blur for modern, elegant interface
+- ✅ **Gradient Mesh Backgrounds**: Dynamic multi-color gradients with smooth CSS animations
+- ✅ **Colored Shadows**: Context-aware shadows that match content for depth and visual hierarchy
+- ✅ **Spring Physics Animations**: Buttery-smooth 60fps animations powered by Framer Motion (stiffness: 100-400, damping: 15-25)
+- ✅ **Dark Mode**: System-aware theme with localStorage persistence
+- ✅ **Mobile Responsive**: Optimized for desktop, tablet, and mobile viewing
 
 ---
 
@@ -61,12 +75,13 @@ Hardware Sentry is a real-time availability and pricing tracker that scans multi
 - Next.js 14.2 (App Router, React Server Components)
 - TypeScript 5.0 (strict mode)
 - Tailwind CSS 3.4
-- Framer Motion 12.34 (animations)
+- Framer Motion 12.34 (spring physics animations, 60fps performance)
+- Lucide Icons
 
 **Backend**:
 - Node.js 20+ (runtime)
-- TinyFish Web Agents API (natural-language web scraping)
-- Upstash Redis (serverless caching and locking)
+- TinyFish Web Agents API (natural-language web scraping with GPT-4o-mini)
+- Upstash Redis (serverless caching, locking, and analytics storage)
 
 **Infrastructure**:
 - Vercel (deployment platform)
@@ -92,6 +107,7 @@ flowchart TB
     subgraph "Application Layer (Next.js)"
         Dashboard[📊 Dashboard<br/>page.tsx]
         ScanAPI[🔄 Scan API<br/>/api/scan]
+        AnalyticsAPI[📈 Analytics API<br/>/api/analytics/stats]
         HistoryAPI[📈 History API<br/>/api/history]
         HealthAPI[🏥 Health API<br/>/api/health]
         BatchAPI[📦 Batch API<br/>/api/scan/batch]
@@ -101,6 +117,7 @@ flowchart TB
         Config[⚙️ Config<br/>SKU Definitions]
         Middleware[🛡️ Middleware<br/>Rate Limit + Monitoring]
         CircuitBreaker[⚡ Circuit Breaker<br/>Failure Prevention]
+        Analytics[📊 Analytics<br/>Event Recording]
     end
 
     subgraph "Execution Layer"
@@ -111,16 +128,18 @@ flowchart TB
 
     subgraph "External Services"
         TinyFishAPI[🌐 TinyFish API<br/>agent.tinyfish.ai]
-        UpstashRedis[(🗄️ Upstash Redis<br/>Cache + Locks)]
+        UpstashRedis[(🗄️ Upstash Redis<br/>Cache + Locks + Analytics)]
         Vendors[🏪 Retailer Websites<br/>Amazon, Pi Hut, etc.]
     end
 
     User --> Dashboard
     Dashboard --> ScanAPI
+    Dashboard --> AnalyticsAPI
     Dashboard --> HistoryAPI
     User --> HealthAPI
 
     ScanAPI --> Middleware
+    ScanAPI --> Analytics
     BatchAPI --> Middleware
     Middleware --> Config
     Middleware --> CircuitBreaker
@@ -132,6 +151,8 @@ flowchart TB
     ScanAPI --> RedisClient
     HistoryAPI --> RedisClient
     HealthAPI --> RedisClient
+    Analytics --> RedisClient
+    AnalyticsAPI --> RedisClient
     RedisClient --> UpstashRedis
 
     Vendors -.->|Scan Results| TinyFishAPI
@@ -144,11 +165,13 @@ flowchart TB
 
 **Layer 1 (Directives)**: SOP documents in `directives/` define goals, inputs, and expected outputs for each workflow (e.g., hardware scanning, deployment).
 
-**Layer 2 (Orchestration)**: API routes in `src/app/api/` make intelligent decisions—checking cache, acquiring locks, handling errors, and coordinating between services.
+**Layer 2 (Orchestration)**: API routes in `src/app/api/` make intelligent decisions—checking cache, acquiring locks, handling errors, recording analytics, and coordinating between services.
 
-**Layer 3 (Execution)**: Pure functions in `src/lib/` perform deterministic operations—HTTP requests to TinyFish, Redis operations, retry logic with exponential backoff.
+**Layer 3 (Execution)**: Pure functions in `src/lib/` perform deterministic operations—HTTP requests to TinyFish, Redis operations, retry logic with exponential backoff, analytics recording.
 
-**Data Flow**: User clicks "Scan" → API checks Redis cache → If stale, acquires lock → TinyFish scans 4 vendors → Results saved to Redis → Changes detected vs. previous scan → UI displays comparison table.
+**Data Flow**: User clicks "Scan" → API checks Redis cache → If stale, acquires lock → TinyFish scans 4+ vendors → Results saved to Redis → Analytics recorded (fire-and-forget) → Changes detected vs. previous scan → UI displays comparison table.
+
+For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
@@ -165,8 +188,8 @@ flowchart TB
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/hardware-sentry.git
-   cd hardware-sentry
+   git clone https://github.com/MasteraSnackin/Hardware-Sentry.git
+   cd Hardware-Sentry
    ```
 
 2. **Install dependencies**:
@@ -208,8 +231,19 @@ flowchart TB
 1. Open the Hardware Sentry dashboard
 2. Select a product SKU from the dropdown (e.g., "Raspberry Pi 5 8GB")
 3. Click "Scan Availability"
-4. Wait 30-45 seconds for results
-5. View price and stock comparison across retailers
+4. Watch real-time progress indicator
+5. Wait 30-45 seconds for results
+6. View price and stock comparison across retailers with change indicators
+
+### Viewing Analytics
+
+1. Navigate to the Analytics Dashboard (link in main navigation)
+2. View key metrics:
+   - **Total Scans**: Lifetime scan count
+   - **Success Rate**: Percentage of successful scans
+   - **Cache Hit Rate**: Percentage of requests served from cache
+   - **Popular SKUs**: Most frequently scanned products
+   - **Average Response Time**: Mean scan duration in milliseconds
 
 ### Example Commands
 
@@ -281,9 +315,17 @@ console.log(data.metadata.successful); // Number of successful scans
 
 **Schema**:
 ```
-scan:{sku}:latest     → JSON string (TTL: 1 hour)
-scan:{sku}:history    → Sorted set, last 10 scans
-scan:{sku}:lock       → Simple lock (TTL: 2 minutes)
+scan:{sku}:latest            → String (JSON)     TTL: 1 hour
+scan:{sku}:history           → Sorted Set        Last 10 scans
+scan:{sku}:lock              → String ("1")      TTL: 2 minutes
+
+analytics:scan_count         → Counter
+analytics:scan_success       → Counter
+analytics:scan_failure       → Counter
+analytics:cache_hits         → Counter
+analytics:cache_misses       → Counter
+analytics:sku_popularity     → Sorted Set        SKU scores
+analytics:response_times     → List              Capped at 100 entries
 ```
 
 **Change Detection Thresholds**:
@@ -298,9 +340,9 @@ scan:{sku}:lock       → Simple lock (TTL: 2 minutes)
 
 ### Circuit Breaker
 
-- **Failure Threshold**: 3 consecutive failures
-- **Reset Timeout**: 30 seconds
-- **Success Threshold**: 2 consecutive successes to close circuit
+- **Failure Threshold**: 3 consecutive failures → OPEN state
+- **Reset Timeout**: 30 seconds → transitions to HALF_OPEN
+- **Success Threshold**: 2 consecutive successes → CLOSED state
 - **Error Response**: HTTP 503 when circuit is OPEN
 
 ---
@@ -309,15 +351,19 @@ scan:{sku}:lock       → Simple lock (TTL: 2 minutes)
 
 ### Main Dashboard
 ![Dashboard](docs/screenshots/dashboard.png)
-> *Single-click scanning interface with SKU selector and results table*
+> *Single-click scanning interface with SKU selector and real-time progress indicators*
 
 ### Results Comparison
 ![Results](docs/screenshots/results.png)
-> *Real-time price and stock comparison across 4+ retailers with change indicators*
+> *Real-time price and stock comparison across 10+ retailers with visual change indicators (↑/↓ price, ★ stock)*
+
+### Analytics Dashboard
+![Analytics](docs/screenshots/analytics.png)
+> *Performance metrics: scan success rates, cache efficiency, popular SKUs, response times*
 
 ### Dark Mode
 ![Dark Mode](docs/screenshots/dark-mode.png)
-> *System-aware dark theme with glassmorphism effects*
+> *System-aware dark theme with glassmorphism effects and gradient mesh backgrounds*
 
 **Live Demo**: [https://hardware-sentry.vercel.app](https://hardware-sentry.vercel.app) *(update with your Vercel URL)*
 
@@ -336,27 +382,50 @@ Scan a single SKU across all configured vendors.
 }
 ```
 
-**Response**:
+**Response (Fresh Scan)**:
 ```json
 {
   "sku": "pi5-8gb",
+  "displayName": "Raspberry Pi 5 (8GB)",
   "scannedAt": "2026-02-15T19:30:00.000Z",
   "cached": false,
   "vendors": [
     {
-      "name": "Amazon UK",
-      "url": "https://amazon.co.uk/...",
+      "vendorName": "Amazon UK",
+      "productUrl": "https://amazon.co.uk/...",
       "price": 79.99,
       "currency": "GBP",
       "inStock": true,
       "stockLevel": "In Stock",
       "notes": "Prime delivery available",
-      "priceChange": "down",
-      "stockChange": true
+      "lastChecked": "2026-02-15T19:30:00.000Z",
+      "changes": {
+        "priceChange": -2.00,
+        "priceChangePercent": -2.44,
+        "stockChanged": false
+      }
     }
   ]
 }
 ```
+
+**Response (Cached)**:
+```json
+{
+  "sku": "pi5-8gb",
+  "cached": true,
+  "cacheAge": 1234567,
+  "...": "same structure as fresh scan"
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Missing or invalid SKU
+- `429 Too Many Requests`: Rate limit exceeded (5 req/60s per IP)
+- `500 Internal Server Error`: TinyFish API failure or Redis error
+- `503 Service Unavailable`: Circuit breaker OPEN (too many failures)
+
+---
 
 ### `POST /api/scan/batch`
 
@@ -386,6 +455,38 @@ Scan multiple SKUs in parallel (max 5 per request).
 }
 ```
 
+---
+
+### `GET /api/analytics/stats`
+
+Retrieve analytics statistics and performance metrics.
+
+**Response**:
+```json
+{
+  "totalScans": 1523,
+  "successfulScans": 1498,
+  "failedScans": 25,
+  "successRate": 98.36,
+  "cacheHits": 842,
+  "cacheMisses": 681,
+  "cacheHitRate": 55.29,
+  "popularSKUs": [
+    { "sku": "pi5-8gb", "count": 342 },
+    { "sku": "orin-nano-8gb", "count": 287 }
+  ],
+  "averageResponseTime": 2341,
+  "timestamp": "2026-02-16T12:34:56.789Z"
+}
+```
+
+**Cache Headers**:
+```
+Cache-Control: public, max-age=60, s-maxage=60
+```
+
+---
+
 ### `GET /api/history?sku={sku}`
 
 Retrieve last 10 scans for a SKU.
@@ -400,6 +501,8 @@ Retrieve last 10 scans for a SKU.
   ]
 }
 ```
+
+---
 
 ### `GET /api/health`
 
@@ -453,6 +556,17 @@ npm run build
 - **ESLint**: Enforces code quality and Next.js best practices
 - **Manual Testing**: Browser-based verification with mock data mode
 
+### Test Coverage Status
+
+**Current Status**: Zero automated test coverage (manual testing only)
+
+**Planned**: Comprehensive test suite with Vitest framework covering:
+- P0 Critical Tests (5 files) - Blocking production deployment
+- P1 High Priority Tests (4 files) - Core functionality
+- P2 Medium Priority Tests (5 files) - Edge cases and polish
+
+For detailed testing strategy, see [TEST_PLAN.md](TEST_PLAN.md).
+
 ### Health Check
 
 Verify API configuration:
@@ -464,30 +578,52 @@ Expected response: `{ "status": "ok", ... }`
 
 ---
 
+## Known Issues
+
+See [BUGS.md](BUGS.md) for full issue tracker with reproduction steps and suggested fixes.
+
+**Summary of Open Issues**:
+- **BUG-001**: Analytics Redis response time parsing (P1 - Fixed, needs test coverage)
+- **BUG-002**: Rate limiter memory leak risk in dev mode (P2 - Open)
+- **BUG-003**: Circuit breaker state race condition (P1 - Needs verification)
+- **BUG-004**: Scan lock TTL vs timeout tight margin (P1 - Needs verification)
+
+**Priority Definitions**:
+- **P0 (Critical)**: Data loss, security vulnerability, complete system failure → Fix within 24 hours
+- **P1 (High)**: Core functionality broken, incorrect business logic → Fix before production
+- **P2 (Medium)**: Degraded performance, edge case failures → Fix within 1 week
+- **P3 (Low)**: Cosmetic issues, minor UX problems → Backlog
+
+---
+
 ## Roadmap
 
 **Completed** ✅:
-- [x] Multi-vendor scanning (4+ retailers)
+- [x] Multi-vendor scanning (10+ retailers)
 - [x] Real-time price and stock extraction
-- [x] Change detection with visual indicators
+- [x] Change detection with visual indicators (↑/↓ price, ★ stock)
 - [x] Historical tracking (last 10 scans)
-- [x] Redis caching with TTL
-- [x] Distributed locking
-- [x] Rate limiting (5 req/min per IP)
-- [x] Circuit breaker pattern
-- [x] Retry logic with exponential backoff
+- [x] Redis caching with TTL (1 hour)
+- [x] Distributed locking (2-minute TTL)
+- [x] Rate limiting (5 req/60s per IP)
+- [x] Circuit breaker pattern (3-state protection)
+- [x] Retry logic with exponential backoff (3 attempts)
 - [x] CSV export functionality
+- [x] Analytics dashboard (success rates, cache performance, SKU popularity)
+- [x] Performance monitoring (fire-and-forget event recording)
 - [x] Dark mode toggle
 - [x] Mobile responsive design
-- [x] Framer Motion animations
+- [x] Framer Motion animations (spring physics, 60fps)
+- [x] Glassmorphism UI with gradient mesh backgrounds
 - [x] Batch scan API
 
 **Planned** 🚀:
+- [ ] **Phase 4**: Quality Assurance & Testing (Vitest setup, automated test suite)
 - [ ] Email/Slack alerts on stock changes
 - [ ] Price drop notifications
 - [ ] GPU and SSD tracking (RTX 4090, Samsung 990 PRO)
 - [ ] Webhook notifications for external integrations
-- [ ] Analytics dashboard (scan success rates, cache hit ratios)
+- [ ] Historical price charts (visualize trends over time)
 - [ ] Mobile app (React Native)
 - [ ] Browser extension (Chrome/Firefox)
 - [ ] Custom SKU configuration UI
@@ -522,6 +658,7 @@ We welcome contributions! This project uses the **self-annealing loop** from `AG
 - Descriptive variable names (`vendorResults` not `res`)
 - Async/await over raw promises
 - Early returns to reduce nesting
+- Fire-and-forget for non-critical operations (e.g., analytics)
 
 ### Reporting Issues
 
@@ -541,11 +678,22 @@ See the [LICENSE](LICENSE) file for full details.
 
 ---
 
-### Links
+## Contact / Support
 
+### Documentation
+- **Architecture**: [ARCHITECTURE.md](ARCHITECTURE.md) - System design, C4 diagrams, trade-offs
+- **Testing Strategy**: [TEST_PLAN.md](TEST_PLAN.md) - Comprehensive test specifications
+- **Bug Tracker**: [BUGS.md](BUGS.md) - Known issues with reproduction steps
+- **Implementation Plan**: [PLAN.md](PLAN.md) - Backend architecture and roadmap
+
+### External Resources
 - **TinyFish API**: [tinyfish.ai](https://tinyfish.ai)
 - **Upstash Redis**: [upstash.com](https://upstash.com)
 - **TinyFish Cookbook**: [github.com/tinyfish-io/tinyfish-cookbook](https://github.com/tinyfish-io/tinyfish-cookbook)
+
+### Support
+- **GitHub Issues**: [github.com/MasteraSnackin/Hardware-Sentry/issues](https://github.com/MasteraSnackin/Hardware-Sentry/issues)
+- **Discussions**: [github.com/MasteraSnackin/Hardware-Sentry/discussions](https://github.com/MasteraSnackin/Hardware-Sentry/discussions)
 
 ---
 
