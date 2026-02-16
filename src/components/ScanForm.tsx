@@ -142,20 +142,28 @@ export default function ScanForm() {
 
       {/* Progress Bar */}
       {isScanning && (
-        <div className="space-y-2">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800 mb-2">
-              Scanning multiple retailers... This may take up to 45 seconds.
-            </p>
-            <div className="w-full bg-blue-200 rounded-full h-2">
+        <div className="space-y-2 animate-fade-in-up">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="live-indicator"></div>
+              <p className="text-sm text-blue-800 font-medium">
+                Scanning multiple retailers... This may take up to 45 seconds.
+              </p>
+            </div>
+            <div className="w-full bg-blue-200 rounded-full h-2.5 overflow-hidden">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full transition-all duration-500 progress-bar-glow"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
-            <p className="text-xs text-blue-600 mt-1">
-              {Math.round(progress)}% complete
-            </p>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-blue-600 font-semibold">
+                {Math.round(progress)}% complete
+              </p>
+              <p className="text-xs text-blue-500">
+                {progress < 30 ? 'Connecting...' : progress < 70 ? 'Scanning...' : 'Finishing up...'}
+              </p>
+            </div>
           </div>
         </div>
       )}

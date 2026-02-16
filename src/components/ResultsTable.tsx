@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { VendorResultWithChanges } from '@/lib/redis';
+import { StatusBadge } from './StatusBadge';
+import { SkeletonLoader } from './SkeletonLoader';
 
 interface ScanResultDisplay {
   sku: string;
@@ -41,23 +43,22 @@ export default function ResultsTable() {
   // Skeleton loading state
   if (loading) {
     return (
-      <div className="glass-card overflow-hidden">
+      <motion.div
+        className="glass-card overflow-hidden p-0"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+      >
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-          <div className="h-6 bg-gray-300 rounded w-32 animate-shimmer mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-48 animate-shimmer"></div>
+          <div className="space-y-2">
+            <div className="skeleton-text w-32 h-6"></div>
+            <div className="skeleton-text w-48 h-4"></div>
+          </div>
         </div>
-        <div className="p-6 space-y-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-center gap-4 animate-shimmer">
-              <div className="h-12 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-12 bg-gray-200 rounded w-1/6"></div>
-              <div className="h-12 bg-gray-200 rounded w-1/6"></div>
-              <div className="h-12 bg-gray-200 rounded flex-1"></div>
-              <div className="h-12 bg-gray-200 rounded w-20"></div>
-            </div>
-          ))}
+        <div className="p-6">
+          <SkeletonLoader variant="table" count={4} />
         </div>
-      </div>
+      </motion.div>
     );
   }
 
@@ -131,28 +132,39 @@ export default function ResultsTable() {
       transition={{ type: 'spring', stiffness: 100, damping: 15 }}
     >
       {/* Header */}
-      <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Scan Results</h3>
-            <p className="text-sm text-gray-600">
-              {results.cached ? '💾 Cached' : '✅ Fresh'} • Scanned {timeAgo}
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                Scan Results
+                {!results.cached && (
+                  <span className="live-indicator" title="Live scan"></span>
+                )}
+              </h3>
+              <div className="flex items-center gap-2 mt-1">
+                {results.cached ? (
+                  <StatusBadge type="info">Cached</StatusBadge>
+                ) : (
+                  <StatusBadge type="success" showDot>
+                    Fresh
+                  </StatusBadge>
+                )}
+                <span className="text-sm text-gray-600">• Scanned {timeAgo}</span>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            {results.stale && (
-              <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                Stale Data
-              </span>
-            )}
+            {results.stale && <StatusBadge type="warning">Stale Data</StatusBadge>}
             <motion.button
               onClick={exportToCSV}
-              className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded transition-colors"
+              className="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition-all hover:shadow-md flex items-center gap-2"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             >
-              📥 Export CSV
+              <span>📥</span>
+              <span>Export CSV</span>
             </motion.button>
           </div>
         </div>
@@ -224,22 +236,20 @@ export default function ResultsTable() {
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div>
+                  <div className="space-y-1">
                     {vendor.inStock ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        ✓ {vendor.stockLevel}
-                      </span>
+                      <StatusBadge type="success">{vendor.stockLevel}</StatusBadge>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        ✗ {vendor.stockLevel}
-                      </span>
+                      <StatusBadge type="error">{vendor.stockLevel}</StatusBadge>
                     )}
                     {vendor.changes?.stockChange?.changed && (
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs mt-1">
                         {vendor.changes.stockChange.new ? (
-                          <span className="text-green-600">★ Back in stock!</span>
+                          <span className="text-green-600 font-medium">
+                            ★ Back in stock!
+                          </span>
                         ) : (
-                          <span className="text-red-600">★ Out of stock</span>
+                          <span className="text-red-600 font-medium">★ Out of stock</span>
                         )}
                       </div>
                     )}
