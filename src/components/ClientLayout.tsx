@@ -4,6 +4,7 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ThemeProvider } from './ThemeProvider';
 import { ThemeToggle } from './ThemeToggle';
+import GradientText from './GradientText';
 
 interface ClientLayoutProps {
   children: ReactNode;
@@ -28,6 +29,13 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
   return (
     <ThemeProvider>
+      {/* === 2026 Floating Orbs Background === */}
+      <div className="floating-orbs">
+        <div className="floating-orb floating-orb-1"></div>
+        <div className="floating-orb floating-orb-2"></div>
+        <div className="floating-orb floating-orb-3"></div>
+      </div>
+
       {/* Parallax Background */}
       <motion.div
         className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-50/30 via-transparent to-purple-50/30 dark:from-blue-950/20 dark:via-transparent dark:to-purple-950/20"
@@ -42,8 +50,9 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                🔍 Hardware Sentry
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <span>🔍</span>
+                <GradientText animate={false}>Hardware Sentry</GradientText>
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Real-time availability tracker for developer boards

@@ -4,17 +4,22 @@ import ScanForm from '@/components/ScanForm';
 import ResultsTable from '@/components/ResultsTable';
 import BentoCard from '@/components/BentoCard';
 import { ScrollFadeIn } from '@/components/ScrollFadeIn';
+import GradientText from '@/components/GradientText';
 
 export default function HomePage() {
   return (
     <div className="bento-grid">
-      {/* Hero Section - Compact */}
+      {/* Hero Section - Enhanced with 2026 Gradient Text */}
       <BentoCard delay={0} className="bento-hero">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Find Your Hardware in Seconds
+        <h2 className="text-3xl font-bold text-gray-900 mb-3 leading-tight">
+          <GradientText>Find Your Hardware</GradientText>
+          <br />
+          <span className="text-2xl font-semibold text-gray-700 dark:text-gray-300">
+            in Seconds ⚡
+          </span>
         </h2>
-        <p className="text-sm text-gray-600">
-          Scan 4+ retailers simultaneously for real-time pricing and availability.
+        <p className="text-base text-gray-600 dark:text-gray-400 mt-2 leading-relaxed">
+          Scan <span className="font-semibold text-gradient">4+ retailers</span> simultaneously for real-time pricing and availability.
         </p>
       </BentoCard>
 
