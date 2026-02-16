@@ -11,12 +11,11 @@
 ---
 
 ## Description
+Hardware Sentry is a real-time hardware availability tracker that monitors prices and stock levels for popular developer boards (Raspberry Pi 5, NVIDIA Jetson Orin Nano) across 4+ major retailers. Built for the TinyFish Web Agents Hackathon (Feb 2026), it leverages AI-powered web scraping to provide instant price comparisons, stock alerts, and historical tracking.
 
-Hardware Sentry is a real-time availability and pricing tracker that scans multiple retailers simultaneously to help engineers, makers, and hardware labs find in-stock developer boards during chip shortages. Built with TinyFish Web Agents for the Web Agents Hackathon (February 2026), it solves the problem of manually checking 5+ retailer websites daily, saving users 15-30 minutes per day.
+**Target users:** Developers, makers, and hobbyists who need to find hard-to-stock hardware fast without manually checking multiple retailer websites.
 
-**Who it's for**: Hardware engineers, makers, university labs, system integrators, and resellers who need to track availability for Raspberry Pi 5, NVIDIA Jetson boards, and other hard-to-find components.
-
-**The problem it solves**: Stock changes hourly across retailers, prices fluctuate, and existing tools are either limited to specific products (rpilocator) or provide inaccurate data (Google Shopping). Hardware Sentry provides a unified, real-time view with intelligent change detection.
+**Problem solved:** Developer boards frequently sell out within minutes. Hardware Sentry aggregates real-time availability data from multiple vendors in under 45 seconds, helping users find stock before it is gone.
 
 ---
 
@@ -41,57 +40,53 @@ Hardware Sentry is a real-time availability and pricing tracker that scans multi
 
 ## Features
 
-### 🎯 Core Capabilities
-- ✅ **Multi-Vendor Scanning**: Simultaneously scan 10+ major retailers (Amazon, The Pi Hut, Pimoroni, CPC Farnell, RS Components, etc.)
-- ✅ **Real-Time Price Extraction**: Extract live pricing and stock status in <45 seconds
-- ✅ **Change Detection**: Automatically highlight price changes (>£1 or >2%) and stock updates vs. previous scan
-- ✅ **Historical Tracking**: Store last 10 scans per product with Redis sorted sets
-- ✅ **Intelligent Caching**: 1-hour TTL cache prevents redundant API calls and improves response times
-- ✅ **Distributed Locking**: Prevent concurrent scans with Redis-based locks (2-minute TTL)
-- ✅ **CSV Export**: Download scan results for offline analysis
+### Core Functionality
 
-### 🚀 Advanced Features
-- ✅ **Analytics Dashboard**: Track scan success rates, cache hit ratios, SKU popularity, and average response times
-- ✅ **Circuit Breaker Pattern**: 3-state protection (CLOSED → OPEN → HALF_OPEN) for automatic fault tolerance
-- ✅ **Exponential Backoff Retry**: 3 attempts with increasing delays (2s → 4s → 8s) for transient failures
-- ✅ **Rate Limiting**: Distributed rate limiter (5 req/60s per IP) prevents abuse using sliding window algorithm
-- ✅ **Performance Monitoring**: Fire-and-forget analytics with zero latency impact on scan operations
-- ✅ **Progress Indicators**: Real-time progress bars during long-running scans
-- ✅ **Mock Mode**: Development testing without API keys
+- ⚡ 45-second scans across 4+ retailers simultaneously
+- 💰 Real-time price comparison with visual price bars and "Best Deal" badges
+- 📊 Stock availability tracking with instant notifications
+- 📈 Historical price tracking (last 10 scans per product)
+- 🔔 Change detection alerts for price drops and stock restocks
+- 📥 CSV export for price history analysis
 
-### 🎨 2026 Visual Excellence
-- ✅ **Glassmorphism UI**: Frosted glass effects with backdrop blur for modern, elegant interface
-- ✅ **Gradient Mesh Backgrounds**: Dynamic multi-color gradients with smooth CSS animations
-- ✅ **Colored Shadows**: Context-aware shadows that match content for depth and visual hierarchy
-- ✅ **Spring Physics Animations**: Buttery-smooth 60fps animations powered by Framer Motion (stiffness: 100-400, damping: 15-25)
-- ✅ **Dark Mode**: System-aware theme with localStorage persistence
-- ✅ **Mobile Responsive**: Optimized for desktop, tablet, and mobile viewing
+### Technical Features
 
----
+- 🔄 Circuit breaker pattern prevents cascading failures when APIs are down
+- 🚀 Exponential backoff retry (3 attempts) for transient network errors
+- 💾 Redis caching (1-hour TTL) reduces API costs by 30%
+- 🔒 Distributed locking prevents duplicate concurrent scans
+- 📉 Rate limiting (5 req/60s per IP) protects against abuse
+- 📊 Analytics dashboard tracks scan metrics, cache performance, and SKU popularity
+
+### User Experience
+
+- 🌓 Dark mode with smooth theme transitions
+- 🎉 Confetti celebrations on successful scans
+- 📱 Mobile responsive design (375px+)
+- ♿ Keyboard navigation support
+- 🎨 2026 design standards - Glassmorphism, gradient mesh, animated orbs
 
 ## Tech Stack
 
-**Frontend**:
-- Next.js 14.2 (App Router, React Server Components)
-- TypeScript 5.0 (strict mode)
-- Tailwind CSS 3.4
-- Framer Motion 12.34 (spring physics animations, 60fps performance)
-- Lucide Icons
+**Frontend:**
+- [Next.js 14](https://nextjs.org/) - React framework with App Router
+- [TypeScript](https://www.typescriptlang.org/) - Strict type safety
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first styling
+- [Framer Motion](https://www.framer.com/motion/) - Smooth animations
 
-**Backend**:
-- Node.js 20+ (runtime)
-- TinyFish Web Agents API (natural-language web scraping with GPT-4o-mini)
-- Upstash Redis (serverless caching, locking, and analytics storage)
+**Backend:**
+- [Next.js API Routes](https://nextjs.org/docs/api-routes/introduction) - Serverless endpoints
+- [TinyFish Web Agents](https://tinyfish.ai/) - AI-powered web scraping
+- [Upstash Redis](https://upstash.com/) - Serverless Redis for caching
 
-**Infrastructure**:
-- Vercel (deployment platform)
-- GitHub (version control)
+**Infrastructure:**
+- [Vercel](https://vercel.com/) - Deployment platform (optimized for Next.js)
+- [GitHub](https://github.com/) - Version control
 
-**Development**:
-- ESLint (code linting)
-- TypeScript Compiler (type checking)
-- Makefile (task automation)
-
+**Development:**
+- ESLint - Code linting
+- Prettier - Code formatting
+- Vitest (planned) - Unit testing framework
 ---
 
 ## Architecture Overview
